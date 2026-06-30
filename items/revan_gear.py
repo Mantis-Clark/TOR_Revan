@@ -17,28 +17,37 @@ OVR = os.path.join(K2, "Override")
 bif.GAME = K2; bifs, res = bif.load_key()
 
 DISGUISE_PROP = 59          # itempropdef "Disguise"; Subtype indexes appearance.2da
-REVAN_APPEARANCE = 22       # appearance.2da "Unique_Darth_Revan"
+APP_DARTH_REVAN = 22        # appearance.2da "Unique_Darth_Revan" (masked)
+APP_JEDI_MALE   = 34        # appearance.2da "Jedi_Council_Member_Male" (robed, unmasked)
 
-def build_revan_robe():
+def _build_disguise_robe(resref, name, desc, appearance):
     _, _, t = gfftool.read(bif.extract("a_robe_02", 2025, bifs, res))   # clone a real robe (correct fields)
     proto = t.fields["PropertiesList"][1][0]
     disg = Struct(proto.stype, dict(proto.fields))
     disg.fields["PropertyName"] = (disg.fields["PropertyName"][0], DISGUISE_PROP)
-    disg.fields["Subtype"] = (disg.fields["Subtype"][0], REVAN_APPEARANCE)
+    disg.fields["Subtype"] = (disg.fields["Subtype"][0], appearance)
     disg.fields["CostTable"] = (disg.fields["CostTable"][0], 255)        # no cost table
     disg.fields["CostValue"] = (disg.fields["CostValue"][0], 0)
     for k, val in [("Param1", 255), ("Param1Value", 0), ("ChanceAppear", 100)]:
         if k in disg.fields:
             disg.fields[k] = (disg.fields[k][0], val)
-    t.fields["TemplateResRef"] = (RESREF, "tor_revanrobe")
-    t.fields["Tag"] = (CEXOSTR, "tor_revanrobe")
-    t.fields["LocalizedName"] = (LOCSTR, (-1, [(0, "Revan's Robes")]))
+    t.fields["TemplateResRef"] = (RESREF, resref)
+    t.fields["Tag"] = (CEXOSTR, resref)
+    t.fields["LocalizedName"] = (LOCSTR, (-1, [(0, name)]))
     t.fields["Description"] = (LOCSTR, (-1, []))
-    t.fields["DescIdentified"] = (LOCSTR, (-1, [(0, "The robes of the Prodigal Knight. Worn to take on the guise of Revan.")]))
+    t.fields["DescIdentified"] = (LOCSTR, (-1, [(0, desc)]))
     t.fields["PropertiesList"] = (15, [disg])
     t.fields["Comment"] = (CEXOSTR, "")
-    gfftool.write(os.path.join(OVR, "tor_revanrobe.uti"), "UTI ", "V3.2", t)
-    return "tor_revanrobe"
+    gfftool.write(os.path.join(OVR, resref + ".uti"), "UTI ", "V3.2", t)
+    return resref
+
+def build_revan_robe():
+    return _build_disguise_robe("tor_revanrobe", "Revan's Robes",
+        "The mask and robes of the Prodigal Knight, worn to take on the guise of Revan.", APP_DARTH_REVAN)
+
+def build_revan_jedi_robe():
+    return _build_disguise_robe("tor_revanjedi", "Revan's Jedi Robes",
+        "The robes Revan wears as a Knight of the Order, his face unhidden.", APP_JEDI_MALE)
 
 def build_revan_saber_uti():
     """The lightsaber item. The model (w_lghtsbr_088) is built by
@@ -52,5 +61,6 @@ def build_revan_saber_uti():
     return "tor_revsaber"
 
 if __name__ == "__main__":
-    print("built", build_revan_robe(), "-> giveitem tor_revanrobe (equip to become Revan)")
+    print("built", build_revan_robe(), "-> giveitem tor_revanrobe (become Darth Revan, masked)")
+    print("built", build_revan_jedi_robe(), "-> giveitem tor_revanjedi (become Jedi Revan, unmasked)")
     print("built", build_revan_saber_uti(), "-> giveitem tor_revsaber (needs model from blender/kitbash_saber_tsl.py)")
