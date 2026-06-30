@@ -50,10 +50,11 @@ def reply(text_strref, entry_indices, script=""):
     f["EntriesList"] = (LIST, [_link(i, is_child=1, link_comment=True) for i in entry_indices])
     return s
 
-def build_dlg(entries, replies, starting_indices, vo_id=""):
+def build_dlg(entries, replies, starting_indices, vo_id="", end_script=""):
     s = Struct(-1); f = s.fields
     f["DelayEntry"] = (DW,0); f["DelayReply"] = (DW,0); f["NumWords"] = (DW,0)
-    f["EndConversation"] = (RES,""); f["EndConverAbort"] = (RES,""); f["Skippable"] = (B,1)
+    # end_script fires when the conversation closes normally (reliable for StartNewModule etc.)
+    f["EndConversation"] = (RES,end_script); f["EndConverAbort"] = (RES,""); f["Skippable"] = (B,1)
     f["StuntList"] = (LIST,[]); f["CameraModel"] = (RES,""); f["VO_ID"] = (EXO,vo_id)
     f["ConversationType"] = (I,0); f["ComputerType"] = (B,0); f["OldHitCheck"] = (B,0)
     f["AmbientTrack"] = (RES,""); f["UnequipItems"] = (B,0); f["AnimatedCut"] = (B,0)
@@ -64,5 +65,5 @@ def build_dlg(entries, replies, starting_indices, vo_id=""):
     f["StartingList"] = (LIST, [_link(i) for i in starting_indices])
     return s
 
-def write_dlg(path, entries, replies, starting_indices, vo_id=""):
-    return write(path, "DLG ", "V3.2", build_dlg(entries, replies, starting_indices, vo_id))
+def write_dlg(path, entries, replies, starting_indices, vo_id="", end_script=""):
+    return write(path, "DLG ", "V3.2", build_dlg(entries, replies, starting_indices, vo_id, end_script))

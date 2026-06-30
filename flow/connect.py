@@ -47,9 +47,9 @@ ex = {s["text"]: i for i, s in enumerate(strings)}
 allh = HAWK_NPC + HAWK_PC + HAWK_END
 hrefs = [ex[t] for t in allh] if all(t in ex for t in allh) else tlk.append(os.path.join(K2, "dialog.tlk"), allh)
 HE = [dlgbuild.entry(0, hrefs[0], [0]),
-      dlgbuild.entry(1, hrefs[2], [], script="k_tor_leave2")]
+      dlgbuild.entry(1, hrefs[2], [])]
 HR = [dlgbuild.reply(hrefs[1], [1])]
-dlgbuild.write_dlg(os.path.join(OVR, "tor_hawkdlg.dlg"), HE, HR, [0], vo_id="tor_mandalore")
+dlgbuild.write_dlg(os.path.join(OVR, "tor_hawkdlg.dlg"), HE, HR, [0], vo_id="tor_mandalore", end_script="k_tor_leave2")
 
 # 4) Ebon Hawk hub module (clone 003EBO; Mandalore as navigator)
 SRC = "003EBO"

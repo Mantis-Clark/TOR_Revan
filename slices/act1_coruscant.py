@@ -40,9 +40,10 @@ refs = get_or_append(NPC + PC); nref, pref = refs[:4], refs[4:]
 E = [dlgbuild.entry(0, nref[0], [0, 1, 2]),
      dlgbuild.entry(1, nref[1], [2]),
      dlgbuild.entry(2, nref[2], [2]),
-     dlgbuild.entry(3, nref[3], [], script="k_tor_leave1")]   # ends dialogue -> travel to Ebon Hawk
+     dlgbuild.entry(3, nref[3], [])]
 R = [dlgbuild.reply(pref[0], [1]), dlgbuild.reply(pref[1], [2]), dlgbuild.reply(pref[2], [3])]
-dlgbuild.write_dlg(os.path.join(OVR, "tor_mand_dlg.dlg"), E, R, [0], vo_id="tor_mandalore")
+# transition fires when the conversation closes (reliable for StartNewModule)
+dlgbuild.write_dlg(os.path.join(OVR, "tor_mand_dlg.dlg"), E, R, [0], vo_id="tor_mandalore", end_script="k_tor_leave1")
 
 # Mandalore NPC (clone p_mand for valid stats; appearance 462 = Party_NPC_Mandalore)
 _, _, utc = gfftool.read(bif.extract("p_mand", 2027, bifs, res))

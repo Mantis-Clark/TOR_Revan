@@ -50,13 +50,14 @@ def build_revan_jedi_robe():
         "The robes Revan wears as a Knight of the Order, his face unhidden.", APP_JEDI_MALE)
 
 def build_revan_saber_uti():
-    """The lightsaber item. The model (w_lghtsbr_088) is built by
-    blender/kitbash_saber_tsl.py; this points a lightsaber item at it."""
-    _, _, t = gfftool.read(bif.extract("g_w_lghtsbr01", 2025, bifs, res))  # clone a real saber
+    """Revan's lightsaber. Uses the STOCK TSL saber model + icon (clone of a real
+    saber, model variation unchanged) so it just works in-game. (A custom hilt model
+    is a later art task; the K1->K2 export needs the correct game-mode function pointers.)"""
+    _, _, t = gfftool.read(bif.extract("g_w_lghtsbr01", 2025, bifs, res))  # clone a real stock saber
     t.fields["TemplateResRef"] = (RESREF, "tor_revsaber")
     t.fields["Tag"] = (CEXOSTR, "tor_revsaber")
-    t.fields["BaseItem"] = (t.fields["BaseItem"][0], 8)                    # Lightsaber
-    t.fields["ModelVariation"] = (t.fields["ModelVariation"][0], 88)       # -> w_lghtsbr_088
+    t.fields["LocalizedName"] = (LOCSTR, (-1, [(0, "Revan's Lightsaber")]))
+    # BaseItem and ModelVariation kept from the stock template -> stock model/icon
     gfftool.write(os.path.join(OVR, "tor_revsaber.uti"), "UTI ", "V3.2", t)
     return "tor_revsaber"
 
