@@ -8,7 +8,7 @@ Run: python slices/act1_coruscant.py   then  warp tor_coru
 """
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "tools"))
-import bif, rim, erfwrite, gfftool, tlk, dlgbuild
+import bif, rim, erfwrite, gfftool, tlk, dlgbuild, populate
 from gfftool import Struct, RESREF, LOCSTR, CEXOSTR, FLOAT
 
 K2 = r"C:/Program Files (x86)/Steam/steamapps/common/Knights of the Old Republic II"
@@ -71,6 +71,24 @@ man.fields["XPosition"] = (FLOAT, ex); man.fields["YPosition"] = (FLOAT, ey - 3.
 man.fields["XOrientation"] = (FLOAT, 0.0); man.fields["YOrientation"] = (FLOAT, 1.0)
 gt.fields["Creature List"] = (15, [man])
 
+# ambient cantina patrons (neutral, mute) - varied civilian/alien appearances.
+# Verified rows in appearance.2da: 190 Commoner_Mal_White, 185 Commoner_Fem_White,
+# 47 Twilek_Female_01, 39 Alien_Rodian_01, 24 Alien_Duros_01, 72 Alien_Ithorian_01.
+AMBIENT_CORU = [
+    ("tor_coru_amb1", "Off-Duty Dockhand",  190),  # human commoner male
+    ("tor_coru_amb2", "Cantina Regular",     185),  # human commoner female
+    ("tor_coru_amb3", "Twi'lek Dancer",       47),  # Twi'lek female
+    ("tor_coru_amb4", "Rodian Stranger",      39),  # Rodian
+    ("tor_coru_amb5", "Duros Pilot",          24),  # Duros
+    ("tor_coru_amb6", "Ithorian Traveler",    72),  # Ithorian
+]
+CORU_OFFS = [(2.5, 1.0), (-2.5, 1.0), (3.5, -1.5), (-3.5, -1.5), (1.5, 3.5), (-1.5, 3.5)]
+amb_files = []
+for (rr, nm, ap), (dx, dy) in zip(AMBIENT_CORU, CORU_OFFS):
+    populate.ambient_utc(rr, nm, ap, bifs, res, OVR)
+    populate.append_creature(gt, proto, rr, ex + dx, ey + dy, ez, -dx, -dy)
+    amb_files.append((rr, 2027, open(os.path.join(OVR, rr + ".utc"), "rb").read()))
+
 it.fields["Mod_Entry_Area"] = (RESREF, AREA); it.fields["Mod_Tag"] = (CEXOSTR, AREA)
 it.fields["Mod_Area_list"][1][0].fields["Area_Name"] = (RESREF, AREA)
 
@@ -82,5 +100,6 @@ mod_files = [
     ("tor_mandalore", 2027, open(os.path.join(OVR, "tor_mandalore.utc"), "rb").read()),
     ("tor_mand_dlg", 2029, open(os.path.join(OVR, "tor_mand_dlg.dlg"), "rb").read()),
 ]
+mod_files += amb_files
 erfwrite.write(os.path.join(MODS, "tor_coru.mod"), mod_files, "MOD ")
-print("built tor_coru.mod (Coruscant/Dealer's Den) with Mandalore. strrefs %s -> warp tor_coru" % refs)
+print("built tor_coru.mod (Coruscant/Dealer's Den) with Mandalore + %d ambient patrons. strrefs %s -> warp tor_coru" % (len(amb_files), refs))

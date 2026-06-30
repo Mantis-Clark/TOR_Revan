@@ -11,7 +11,7 @@ Run:  python slices/scourge_intro.py    then  warp tor_kaas
 """
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "tools"))
-import bif, rim, gfftool, tlk, dlgbuild, erfwrite
+import bif, rim, gfftool, tlk, dlgbuild, erfwrite, populate
 from gfftool import Struct, RESREF, LOCSTR, CEXOSTR, FLOAT, WORD
 
 K2 = r"C:/Program Files (x86)/Steam/steamapps/common/Knights of the Old Republic II"
@@ -99,6 +99,23 @@ nyr.fields["XOrientation"] = (FLOAT, -dx)         # face back toward the entry/p
 nyr.fields["YOrientation"] = (FLOAT, -dy)
 gt.fields["Creature List"] = (15, [nyr])
 
+# ambient Sith guards/courtiers (neutral=5 so they stand watch without attacking).
+# Verified rows in appearance.2da: 20 Dark_Jedi_Male_01, 19 Dark_Jedi_Female_01,
+# 28 Sith_Soldier_01, 44 Sith_Soldier_02.
+AMBIENT_KAAS = [
+    ("tor_kaas_amb1", "Sith Acolyte",      20),  # dark jedi male
+    ("tor_kaas_amb2", "Sith Adept",        19),  # dark jedi female
+    ("tor_kaas_amb3", "Sith Trooper",      28),  # sith soldier
+    ("tor_kaas_amb4", "Stronghold Guard",  44),  # sith soldier (variant)
+]
+# flank the approach: spread to either side near the entry, facing back at the player
+KAAS_OFFS = [(2.5, 2.0), (-2.5, 2.0), (3.0, 4.5), (-3.0, 4.5)]
+amb_files = []
+for (rr, nm, ap), (ofx, ofy) in zip(AMBIENT_KAAS, KAAS_OFFS):
+    populate.ambient_utc(rr, nm, ap, bifs, res, OVR, faction=5)
+    populate.append_creature(gt, proto, rr, ex + ofx, ey + ofy, ez, -dx, -dy)
+    amb_files.append((rr, 2027, open(os.path.join(OVR, rr + ".utc"), "rb").read()))
+
 it.fields["Mod_Entry_Area"] = (RESREF, AREA)
 it.fields["Mod_Tag"] = (CEXOSTR, AREA)
 it.fields["Mod_Area_list"][1][0].fields["Area_Name"] = (RESREF, AREA)
@@ -112,7 +129,8 @@ mod_files = [
 ]
 for rr, rt, ext in [("tor_nyriss", 2027, ".utc"), ("tor_nyr_dlg", 2029, ".dlg")]:
     mod_files.append((rr, rt, open(os.path.join(OVR, rr + ext), "rb").read()))
+mod_files += amb_files
 erfwrite.write(os.path.join(MODS, "tor_kaas.mod"), mod_files, "MOD ")
-print("built tor_kaas.mod (self-contained) area '%s', NPC tor_nyriss, dialogue strrefs %s" % (AREA, refs))
+print("built tor_kaas.mod (self-contained) area '%s', NPC tor_nyriss + %d ambient Sith, dialogue strrefs %s" % (AREA, len(amb_files), refs))
 print("placement: (%.3f, %.3f, %.3f)" % (ex + dx*3.0, ey + dy*3.0, ez))
 print("warp tor_kaas")

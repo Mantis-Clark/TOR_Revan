@@ -10,7 +10,7 @@ All dialogue is original writing.
 import os, sys, subprocess
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
-import bif, rim, erf, erfwrite, gfftool, tlk, dlgbuild, journal
+import bif, rim, erf, erfwrite, gfftool, tlk, dlgbuild, journal, populate
 from gfftool import Struct, RESREF, LOCSTR, CEXOSTR, FLOAT
 from pykotor.resource.formats.ncs import compile_nss, bytes_ncs
 from pykotor.common.misc import Game
@@ -79,6 +79,20 @@ nav.fields["TemplateResRef"] = (RESREF, "tor_man_hawk")
 nav.fields["XPosition"] = (FLOAT, ex_); nav.fields["YPosition"] = (FLOAT, ey_ - 3.0); nav.fields["ZPosition"] = (FLOAT, ez_)
 nav.fields["XOrientation"] = (FLOAT, 0.0); nav.fields["YOrientation"] = (FLOAT, 1.0)
 gt.fields["Creature List"] = (15, [nav])
+
+# ambient Ebon Hawk crew (neutral, mute). Verified appearance.2da rows:
+# 57 Droid_Astro_01 (utility droid), 191 Commoner_Mal_Black_01_A (generic crew).
+AMBIENT_HAWK = [
+    ("tor_hawk_amb1", "Utility Droid", 57),   # astromech / utility droid
+    ("tor_hawk_amb2", "Crew Hand",    191),   # generic human crew member
+]
+HAWK_OFFS = [(2.0, 1.5), (-2.0, 1.5)]
+amb_files = []
+for (rr, nm, ap), (dx, dy) in zip(AMBIENT_HAWK, HAWK_OFFS):
+    populate.ambient_utc(rr, nm, ap, bifs, res, OVR)
+    populate.append_creature(gt, proto, rr, ex_ + dx, ey_ + dy, ez_, -dx, -dy)
+    amb_files.append((rr, 2027, open(os.path.join(OVR, rr + ".utc"), "rb").read()))
+
 it.fields["Mod_Entry_Area"] = (RESREF, AREA); it.fields["Mod_Tag"] = (CEXOSTR, AREA)
 it.fields["Mod_Area_list"][1][0].fields["Area_Name"] = (RESREF, AREA)
 erfwrite.write(os.path.join(MODS, "tor_hawk.mod"), [
@@ -88,7 +102,7 @@ erfwrite.write(os.path.join(MODS, "tor_hawk.mod"), [
     (AREA, 3000, lyt), (AREA, 3001, vis),
     ("tor_man_hawk", 2027, open(os.path.join(OVR, "tor_man_hawk.utc"), "rb").read()),
     ("tor_hawkdlg", 2029, open(os.path.join(OVR, "tor_hawkdlg.dlg"), "rb").read()),
-], "MOD ")
+] + amb_files, "MOD ")
 
 # 5) rebuild Coruscant so Mandalore's last line fires k_tor_leave1
 subprocess.run([sys.executable, os.path.join(ROOT, "slices", "act1_coruscant.py")], check=True)
