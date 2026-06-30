@@ -18,7 +18,7 @@ bif.GAME = K2; bifs, res = bif.load_key()
 
 # original lines (my own writing; never the novel's text)
 NPC = [
- "You're a hard man to find, Revan, for someone the whole galaxy claims to know. Sit. I didn't crawl into this corner of Coruscant for the atmosphere.",
+ "Don't tell me the famous Revan has forgotten the man behind the mask. It's Canderous. Canderous Ordo. We spilled blood together aboard the Star Forge, before duty made a stranger of you. Now sit. I didn't crawl into this corner of Coruscant for the atmosphere.",
  "Maybe. There are Mandalorian relics from the war that speak of an enemy your Republic never names. If those nightmares of yours have a face, it is buried out there in the cold.",
  "Because whatever hunts your sleep hunted my people first, at Malachor and long before it. I intend to learn what we truly died for.",
  "I thought you would say that. Gear up. The Ebon Hawk is fueled, and we begin where the war ended.",
