@@ -40,5 +40,17 @@ def build_revan_robe():
     gfftool.write(os.path.join(OVR, "tor_revanrobe.uti"), "UTI ", "V3.2", t)
     return "tor_revanrobe"
 
+def build_revan_saber_uti():
+    """The lightsaber item. The model (w_lghtsbr_088) is built by
+    blender/kitbash_saber_tsl.py; this points a lightsaber item at it."""
+    _, _, t = gfftool.read(bif.extract("g_w_lghtsbr01", 2025, bifs, res))  # clone a real saber
+    t.fields["TemplateResRef"] = (RESREF, "tor_revsaber")
+    t.fields["Tag"] = (CEXOSTR, "tor_revsaber")
+    t.fields["BaseItem"] = (t.fields["BaseItem"][0], 8)                    # Lightsaber
+    t.fields["ModelVariation"] = (t.fields["ModelVariation"][0], 88)       # -> w_lghtsbr_088
+    gfftool.write(os.path.join(OVR, "tor_revsaber.uti"), "UTI ", "V3.2", t)
+    return "tor_revsaber"
+
 if __name__ == "__main__":
     print("built", build_revan_robe(), "-> giveitem tor_revanrobe (equip to become Revan)")
+    print("built", build_revan_saber_uti(), "-> giveitem tor_revsaber (needs model from blender/kitbash_saber_tsl.py)")
