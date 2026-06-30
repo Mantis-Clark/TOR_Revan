@@ -6,6 +6,7 @@ Types: 0 BYTE,1 CHAR,2 WORD,3 SHORT,4 DWORD,5 INT,6 DWORD64,7 INT64,8 FLOAT,
 import struct
 
 BYTE,CHAR,WORD,SHORT,DWORD,INT,DWORD64,INT64,FLOAT,DOUBLE,CEXOSTR,RESREF,LOCSTR,VOID,STRUCT,LIST = range(16)
+ORIENT, POSITION = 16, 17   # KOTOR GFF extensions: Orientation (4 floats), Position (3 floats)
 SIMPLE_INLINE = {BYTE,CHAR,WORD,SHORT,DWORD,INT,FLOAT}
 
 class Struct:
@@ -48,6 +49,8 @@ def read(path_or_bytes):
             return (strref, subs)
         if ftypeid==VOID:
             n=struct.unpack_from('<I',d,base)[0]; return d[base+4:base+4+n]
+        if ftypeid==POSITION: return struct.unpack_from('<3f',d,base)
+        if ftypeid==ORIENT:   return struct.unpack_from('<4f',d,base)
         raise ValueError("bad complex type %d"%ftypeid)
     def build(si):
         stype,dataoff,fcount=structs[si]
@@ -103,6 +106,8 @@ def write(path, ftype, ver, top):
             field_data.extend(struct.pack('<I',len(body))+body)
         elif ft==VOID:
             field_data.extend(struct.pack('<I',len(val))+bytes(val))
+        elif ft==POSITION: field_data.extend(struct.pack('<3f',*val))
+        elif ft==ORIENT:   field_data.extend(struct.pack('<4f',*val))
         else: raise ValueError(ft)
         return off
     def inline(ft,val):
@@ -184,6 +189,8 @@ def equal(a,b,path=""):
                 if not equal(x,y,"%s/%s[%d]"%(path,lab,i)): return False
         elif ft==FLOAT:
             if abs(val-val2)>1e-6: print("float differ",path+"/"+lab,val,val2); return False
+        elif ft in (ORIENT,POSITION):
+            if any(abs(a-b)>1e-5 for a,b in zip(val,val2)): print("vec differ",path+"/"+lab,val,val2); return False
         else:
             if val!=val2: print("value differ",path+"/"+lab,repr(val),repr(val2)); return False
     return True
