@@ -1,0 +1,38 @@
+# --- Game-derived / copyrighted assets: never commit ---
+# Extracted or generated KOTOR model/engine binaries
+*.mdl
+*.mdx
+*.tpc
+*.tga
+*.tlk
+*.bif
+*.rim
+*.mod
+*.erf
+*.key
+# Game data tables and templates (extracted from the game)
+*.2da
+*.uti
+*.utc
+*.utd
+*.utp
+*.dlg
+*.ncs
+*.nss
+*.lip
+# Downloaded third-party tool archives / mods
+*.zip
+kb/
+whereami*/
+
+# Exception: keep our patch files and docs
+!patches/*.patch
+
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
+
+# --- OS ---
+Thumbs.db
+.DS_Store

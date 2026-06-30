@@ -1,0 +1,58 @@
+--- "C:/Users/alex4/AppData/Roaming/Blender Foundation/Blender/5.1/extensions/user_default/io_scene_kotor/scene/animnode.py.bak"	2026-06-30 11:09:19.134034600 -0500
++++ "C:/Users/alex4/AppData/Roaming/Blender Foundation/Blender/5.1/extensions/user_default/io_scene_kotor/scene/animnode.py"	2026-06-30 11:09:42.748889600 -0500
+@@ -285,7 +285,41 @@
+             return subject.animation_data_create()
+ 
+     @classmethod
+-    def get_or_create_fcurve(cls, action, data_path, index):
++    def _get_channelbag(cls, action, slot=None):
++        # Blender 4.4+ slotted-action API: fcurves live in a per-slot channelbag
++        if slot is None:
++            if len(action.slots):
++                slot = action.slots[0]
++            else:
++                slot = action.slots.new(id_type="OBJECT", name="Legacy")
++        layer = action.layers[0] if len(action.layers) else action.layers.new("Layer")
++        strip = layer.strips[0] if len(layer.strips) else layer.strips.new(type="KEYFRAME")
++        return strip.channelbag(slot, ensure=True)
++
++    @classmethod
++    def _iter_channelbags(cls, action):
++        for layer in action.layers:
++            for strip in layer.strips:
++                for cbag in getattr(strip, "channelbags", []):
++                    yield cbag
++
++    @classmethod
++    def clear_fcurves(cls, action):
++        if bpy.app.version >= (4, 4):
++            for cbag in cls._iter_channelbags(action):
++                for fc in list(cbag.fcurves):
++                    cbag.fcurves.remove(fc)
++        else:
++            action.fcurves.clear()
++
++    @classmethod
++    def get_or_create_fcurve(cls, action, data_path, index, slot=None):
++        if bpy.app.version >= (4, 4):
++            cbag = cls._get_channelbag(action, slot)
++            fcurve = cbag.fcurves.find(data_path, index=index)
++            if not fcurve:
++                fcurve = cbag.fcurves.new(data_path, index=index)
++            return fcurve
+         fcurve = action.fcurves.find(data_path, index=index)
+         if not fcurve:
+             fcurve = action.fcurves.new(data_path=data_path, index=index)
+@@ -336,7 +370,11 @@
+     @classmethod
+     def get_keyframes(cls, action, frame_start=0, frame_end=sys.maxsize, dp_prefix=""):
+         keyframes = dict()
+-        for fcurve in action.fcurves:
++        if bpy.app.version >= (4, 4):
++            fcurves = [fc for cbag in cls._iter_channelbags(action) for fc in cbag.fcurves]
++        else:
++            fcurves = action.fcurves
++        for fcurve in fcurves:
+             data_path = fcurve.data_path
+             if dp_prefix and data_path.startswith(dp_prefix):
+                 prefix_len = len(dp_prefix)
