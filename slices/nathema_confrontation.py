@@ -63,7 +63,9 @@ utc.fields["FactionID"] = (utc.fields["FactionID"][0], 5)
 utc.fields["Conversation"] = (utc.fields.get("Conversation", (RESREF, ""))[0], "tor_emp_dlg")
 gfftool.write(os.path.join(OVR, "tor_emperor.utc"), "UTC ", "V3.2", utc)
 
-# full module clone under a unique area name (avoids collision; ships geometry refs + templates)
+# self-contained module (single .mod): reuse the area geometry (loaded from BIF),
+# empty the GIT object lists so no external templates are needed, inject the Emperor.
+import erfwrite
 lyt = bif.extract(SRC_MODULE.lower(), 3000, bifs, res)
 vis = bif.extract(SRC_MODULE.lower(), 3001, bifs, res)
 ents = rim.read_rim(os.path.join(MODS, SRC_MODULE + ".rim"))
@@ -72,23 +74,27 @@ _, _, gt = gfftool.read(next(d for r, t, d in ents if t == 2023))
 _, _, it = gfftool.read(next(d for r, t, d in ents if t == 2014))
 
 proto = gt.fields["Creature List"][1][0]
+for lab, (ft, v) in list(gt.fields.items()):
+    if ft == 15:
+        gt.fields[lab] = (ft, [])                 # empty all object lists (no template deps)
 emp = Struct(proto.stype, dict(proto.fields))
 emp.fields["TemplateResRef"] = (RESREF, "tor_emperor")
 emp.fields["XPosition"] = (FLOAT, 121.6); emp.fields["YPosition"] = (FLOAT, 150.0); emp.fields["ZPosition"] = (FLOAT, 0.15)
 emp.fields["XOrientation"] = (FLOAT, 0.0); emp.fields["YOrientation"] = (FLOAT, 1.0)
-gt.fields["Creature List"] = (gt.fields["Creature List"][0], [emp])
-gt.fields["TriggerList"] = (gt.fields["TriggerList"][0], [])     # strip area-transition triggers (load-loop fix)
+gt.fields["Creature List"] = (15, [emp])
 
 it.fields["Mod_Entry_Area"] = (RESREF, AREA)
 it.fields["Mod_Tag"] = (CEXOSTR, AREA)
 it.fields["Mod_Area_list"][1][0].fields["Area_Name"] = (RESREF, AREA)
 
-rim.write_rim(os.path.join(MODS, "tor_nath.rim"), [
+mod_files = [
+    ("module", 2014, gfftool.write(None, "IFO ", "V3.2", it)),
     (AREA, 2012, are_b),
     (AREA, 2023, gfftool.write(None, "GIT ", "V3.2", gt)),
-    ("module", 2014, gfftool.write(None, "IFO ", "V3.2", it)),
     (AREA, 3000, lyt),
     (AREA, 3001, vis),
-])
-shutil.copy(os.path.join(MODS, SRC_MODULE + "_s.rim"), os.path.join(MODS, "tor_nath_s.rim"))
-print("built tor_nath (+_s) area '%s', dialogue strrefs %s -> warp tor_nath" % (AREA, refs))
+]
+for rr, rt, ext in [("tor_emperor", 2027, ".utc"), ("tor_emp_dlg", 2029, ".dlg"), ("tor_emp_fight", 2010, ".ncs")]:
+    mod_files.append((rr, rt, open(os.path.join(OVR, rr + ext), "rb").read()))
+erfwrite.write(os.path.join(MODS, "tor_nath.mod"), mod_files, "MOD ")
+print("built tor_nath.mod (self-contained) area '%s', dialogue strrefs %s -> warp tor_nath" % (AREA, refs))

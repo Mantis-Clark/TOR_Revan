@@ -164,9 +164,10 @@ def write(path, ftype, ver, top):
     li_off=fi_off+len(field_idx_data)
     out=bytearray()
     out+=ftype.encode('ascii')+ver.encode('ascii')
+    # NOTE: FieldIndicesCount and ListIndicesCount are BYTE counts, not entry counts.
     out+=struct.pack('<12I',
         s_off,len(struct_recs), f_off,len(field_arr), l_off,len(labels),
-        fd_off,len(field_data), fi_off,len(field_idx_data)//4, li_off,len(list_data)//4)
+        fd_off,len(field_data), fi_off,len(field_idx_data), li_off,len(list_data))
     for stype,dod,n in struct_recs: out+=struct.pack('<iII',stype,dod,n)
     for ft,li,dod in field_arr: out+=struct.pack('<III',ft,li,dod & 0xFFFFFFFF)
     out+=label_block; out+=field_data; out+=field_idx_data; out+=list_data
