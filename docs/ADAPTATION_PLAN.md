@@ -4,11 +4,15 @@ Adaptation of *Star Wars: The Old Republic — Revan* (Drew Karpyshyn, 2011) as 
 Structure below is derived directly from the novel: **Prologue + 31 chapters + Epilogue**, told
 through two interleaved POVs (Revan; Lord Scourge) that converge when Meetra Surik enters (Ch. 17).
 
-> Engine note: this plan assumes **KOTOR 1** (our entire toolchain + the working custom saber are
-> on K1). The story is, however, the canonical bridge between **KOTOR 2** and SWTOR (Meetra Surik =
-> the K2 Exile; the ending sets up the SWTOR Maelstrom Prison). K2 is the more "natural" lore home
-> and has the Exile/Mandalore/influence systems already. **K1 vs K2 is the first decision to lock**
-> (see §9). Where it matters, K2 notes are called out.
+> ## Decisions locked (2026-06-30)
+> - **Engine: KOTOR 2 / TSL.** Lore-natural (Meetra Surik = the K2 Exile; ending → SWTOR Maelstrom
+>   Prison); native Exile/Mandalore/influence systems. TSL is installed at
+>   `C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II` (Steam/Aspyr).
+> - **POV: full 3-protagonist switching** (Revan / Lord Scourge / Meetra Surik).
+> - **Scope: the complete 31-chapter adaptation** (both POVs, all acts).
+>
+> This is the most faithful and most ambitious configuration. See §7.5 for the K1→K2 port and §8 for
+> how "full scope" is sequenced so it stays testable.
 
 ---
 
@@ -129,6 +133,32 @@ These are all squarely in scope for this toolchain (same binary-format work as 2
 
 ---
 
+## 7.5 KOTOR 1 → KOTOR 2 (TSL) port
+
+What we built carries over; what changes is data schemas and a few engine specifics.
+
+**Carries over unchanged:**
+- `tools/` readers — TSL uses the same `KEY V1`, GFF, `2DA V2.b`, and ERF/MOD formats (verified:
+  TSL `chitin.key` is `KEY V1`). `bif.py`/`erf.py`/`twoda.py`/`gff.py` work as-is.
+- Blender pipeline — KotorBlender imports/exports TSL models; our Blender-5.1 fcurve patch is
+  engine-agnostic. Saber kitbash method is identical (rebuild on TSL's saber model).
+
+**Changes to handle:**
+- **2DA schemas differ** (TSL `baseitems`, `spells`, `appearance`, `itempropdef`, `feat` have extra
+  columns/rows). Our code is schema-agnostic for reading; the build's table edits must target TSL rows.
+- **New restypes / fields** in TSL (e.g., extra GFF fields on UTC for influence). Writers must emit
+  TSL-flavored templates.
+- **Point at the TSL install** for all extraction/build/test.
+- **Rebuild the custom saber** on TSL (the K1 `w_lghtsbr_099` artifact stays a K1 proof-of-concept).
+
+**TSL features we now get for free (use them):**
+- **Native prologue-style POV switching** — TSL ships with the Telos prologue (control T3, then the
+  Exile). That exact mechanism is our 3-POV framework; we mirror it for Revan/Scourge/Meetra.
+- **Influence system** for party (Bastila, Canderous, Meetra, Scourge dynamics).
+- Better scripting hooks and the TSLPatcher ecosystem is TSL-first.
+
+---
+
 ## 8. Phased roadmap
 
 - **M0 — Foundation:** the §7 writers, compiler integration, build/installer. *Deliverable: build a
@@ -143,16 +173,15 @@ These are all squarely in scope for this toolchain (same binary-format work as 2
 
 ---
 
-## 9. Open decisions (lock before M0)
+## 9. Decisions
 
-1. **Engine: K1 vs K2 (TSL).** K1 = our proven toolchain & saber. K2 = lore-natural (Exile/Mandalore
-   native, influence system, leads into SWTOR), better engine, but re-port the pipeline. *Rec: decide
-   now; I lean K2 for faithfulness, K1 for momentum.*
-2. **Protagonist model:** full 3-POV switching (faithful, more work) vs Revan-only (cutscenes for the
-   rest). *Rec: 3-POV but build Revan's path first.*
-3. **Scope tier:** full 31-chapter adaptation vs a focused "core" (Revan → Rekkiad → Nathema →
-   Emperor), dropping/condensing the Scourge intrigue. *Rec: build core first, expand.*
-4. **Art/VO sourcing:** solo (reuse-only, TTS) vs recruit modder artists/voice actors.
+1. **Engine:** ✅ **KOTOR 2 / TSL** (locked 2026-06-30).
+2. **Protagonist model:** ✅ **Full 3-POV switching** (locked). Build order: Revan's path first, then
+   wire Scourge and Meetra control via the TSL prologue mechanism (§7.5).
+3. **Scope:** ✅ **Full 31-chapter adaptation** (locked). Sequenced act-by-act (§8) so each release is
+   testable; "full" is the commitment, not a single monolithic drop.
+4. **Art/VO sourcing:** ⬜ still open — solo (reuse-only + TTS placeholder) vs. recruit artists/voice
+   actors. Not blocking M0/M1; decide before M2.
 
 ---
 
