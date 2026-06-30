@@ -29,9 +29,11 @@ journal.append_quest(K2, "tor_hunt", "The Hunt", [
     (30, "I faced the darkness at the heart of the dead world. The hunt is far from over.", True),
 ])
 
-# 2) transition scripts
+# 2) transition scripts.
+# NOTE: the Ebon Hawk (003EBO) is special-cased in KOTOR and does not load as a
+# standalone cloned module, so we route Coruscant straight to the dead world.
 open(os.path.join(OVR, "k_tor_leave1.ncs"), "wb").write(comp(
-    'void main(){ AddJournalQuestEntry("tor_hunt", 10); StartNewModule("tor_hawk"); }'))
+    'void main(){ AddJournalQuestEntry("tor_hunt", 10); AddJournalQuestEntry("tor_hunt", 20); StartNewModule("tor_nath"); }'))
 open(os.path.join(OVR, "k_tor_leave2.ncs"), "wb").write(comp(
     'void main(){ AddJournalQuestEntry("tor_hunt", 20); StartNewModule("tor_nath"); }'))
 # confrontation script now also advances the journal to complete
@@ -107,4 +109,4 @@ erfwrite.write(os.path.join(MODS, "tor_hawk.mod"), [
 # 5) rebuild Coruscant so Mandalore's last line fires k_tor_leave1
 subprocess.run([sys.executable, os.path.join(ROOT, "slices", "act1_coruscant.py")], check=True)
 
-print("flow wired: warp tor_coru -> (Mandalore) -> tor_hawk -> (set course) -> tor_nath; quest 'The Hunt' tracks it.")
+print("flow wired: warp tor_coru -> (talk to Mandalore, end convo) -> tor_nath; quest 'The Hunt' tracks it. (Ebon Hawk hub deferred - 003EBO won't load standalone.)")
